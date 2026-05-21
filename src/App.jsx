@@ -1,125 +1,102 @@
 import { useState, useEffect } from "react";
 
-function ContactForm({ onSubmit }) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [service, setService] = useState("Business Website");
-  const [budget, setBudget] = useState("");
-
-  function handleSubmit(e) {
-    e.preventDefault();
-    if (!name || !email) return;
-    onSubmit({ name, email, service, budget, date: new Date().toLocaleDateString() });
-    setName("");
-    setEmail("");
-    setBudget("");
-  }
-
+function CurrencyCard({ title, amount, symbol }) {
   return (
-    <div style={{ backgroundColor: "white", padding: "40px", maxWidth: "500px", margin: "0 auto", borderTop: "4px solid #e0a04f" }}>
-      <h2 style={{ color: "#1a1a2e", marginBottom: "20px" }}>New Lead</h2>
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", marginBottom: "5px", color: "#444" }}>Name *</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Client name" style={{ width: "100%", padding: "10px", border: "1px solid #ddd", fontSize: "16px" }} />
-        </div>
-        <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", marginBottom: "5px", color: "#444" }}>Email *</label>
-          <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="client@email.com" style={{ width: "100%", padding: "10px", border: "1px solid #ddd", fontSize: "16px" }} />
-        </div>
-        <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", marginBottom: "5px", color: "#444" }}>Service</label>
-          <select value={service} onChange={(e) => setService(e.target.value)} style={{ width: "100%", padding: "10px", border: "1px solid #ddd", fontSize: "16px" }}>
-            <option>Business Website</option>
-            <option>Landing Page</option>
-            <option>Portfolio Site</option>
-            <option>SEO Optimization</option>
-          </select>
-        </div>
-        <div style={{ marginBottom: "20px" }}>
-          <label style={{ display: "block", marginBottom: "5px", color: "#444" }}>Budget ($)</label>
-          <input value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="500" style={{ width: "100%", padding: "10px", border: "1px solid #ddd", fontSize: "16px" }} />
-        </div>
-        <button type="submit" style={{ backgroundColor: "#e0a04f", color: "white", border: "none", padding: "14px 30px", fontSize: "16px", cursor: "pointer", width: "100%" }}>
-          Add Lead
-        </button>
-      </form>
-    </div>
-  );
-}
-
-function LeadCard({ lead, index, onDelete }) {
-  const [status, setStatus] = useState(lead.status || "New");
-
-  return (
-    <div style={{ backgroundColor: "white", padding: "20px", margin: "10px", borderLeft: "4px solid #e0a04f", minWidth: "250px", maxWidth: "300px" }}>
-      <h3 style={{ color: "#1a1a2e" }}>Lead #{index + 1}</h3>
-      <p><strong>Name:</strong> {lead.name}</p>
-      <p><strong>Email:</strong> {lead.email}</p>
-      <p><strong>Service:</strong> {lead.service}</p>
-      <p><strong>Budget:</strong> ${lead.budget}</p>
-      <p style={{ color: "#aaa", fontSize: "12px" }}>Added: {lead.date}</p>
-      <select
-        value={status}
-        onChange={(e) => setStatus(e.target.value)}
-        style={{ width: "100%", padding: "8px", marginTop: "10px", border: "1px solid #ddd" }}
-      >
-        <option>New</option>
-        <option>Contacted</option>
-        <option>In Discussion</option>
-        <option>Closed</option>
-      </select>
-      <button onClick={onDelete} style={{ backgroundColor: "red", color: "white", border: "none", padding: "8px 16px", marginTop: "10px", cursor: "pointer" }}>
-        Delete
-      </button>
+    <div style={{
+      backgroundColor: "white",
+      padding: "30px",
+      margin: "10px",
+      minWidth: "200px",
+      borderTop: "4px solid #e0a04f",
+      textAlign: "center"
+    }}>
+      <p style={{ color: "#888", fontSize: "14px", marginBottom: "10px" }}>{title}</p>
+      <h2 style={{ color: "#1a1a2e", fontSize: "36px" }}>{symbol}{amount}</h2>
     </div>
   );
 }
 
 function App() {
-  const [leads, setLeads] = useState(() => {
-    const saved = localStorage.getItem("rdw-leads");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [rate, setRate] = useState(null);
+  const [usdAmount, setUsdAmount] = useState(1000);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    localStorage.setItem("rdw-leads", JSON.stringify(leads));
-  }, [leads]);
+    async function fetchRate() {
+      try {
+        const response = await fetch(
+          "https://api.exchangerate-api.com/v4/latest/USD"
+        );
+        const data = await response.json();
+        setRate(data.rates.KES);
+        setLoading(false);
+      } catch (err) {
+        setError("Could not fetch exchange rate");
+        setLoading(false);
+      }
+    }
+    fetchRate();
+  }, []);
 
-  function handleNewLead(lead) {
-    setLeads([...leads, lead]);
-  }
-
-  function handleDelete(index) {
-    setLeads(leads.filter((_, i) => i !== index));
-  }
-
-  const totalBudget = leads.reduce((sum, lead) => sum + (parseFloat(lead.budget) || 0), 0);
+  const kesAmount = rate ? (usdAmount * rate).toLocaleString() : "...";
 
   return (
-    <div style={{ backgroundColor: "#f5f5f5", minHeight: "100vh", padding: "40px" }}>
-      <div style={{ textAlign: "center", marginBottom: "40px" }}>
-        <h1 style={{ color: "#1a1a2e", fontSize: "36px" }}>RichProMedia</h1>
-        <p style={{ color: "#e0a04f" }}>Client Lead Tracker</p>
-        {leads.length > 0 && (
-          <div style={{ marginTop: "20px", backgroundColor: "#1a1a2e", color: "white", padding: "15px 30px", display: "inline-block" }}>
-            <span style={{ marginRight: "30px" }}>Total Leads: {leads.length}</span>
-            <span style={{ color: "#e0a04f" }}>Pipeline Value: ${totalBudget}</span>
-          </div>
+    <div style={{ backgroundColor: "#f5f5f5", minHeight: "100vh", padding: "60px 40px" }}>
+      <div style={{ textAlign: "center", marginBottom: "50px" }}>
+        <h1 style={{ color: "#1a1a2e", fontSize: "42px", fontFamily: "Georgia, serif" }}>
+          USD → KES
+        </h1>
+        <p style={{ color: "#888", fontSize: "18px" }}>Live Exchange Rate</p>
+        {rate && (
+          <p style={{ color: "#e0a04f", fontSize: "16px", marginTop: "10px" }}>
+            1 USD = {rate.toFixed(2)} KES
+          </p>
         )}
       </div>
 
-      <ContactForm onSubmit={handleNewLead} />
+      {loading && <p style={{ textAlign: "center", color: "#888" }}>Fetching live rate...</p>}
+      {error && <p style={{ textAlign: "center", color: "red" }}>{error}</p>}
 
-      {leads.length > 0 && (
-        <div style={{ marginTop: "50px" }}>
-          <h2 style={{ textAlign: "center", color: "#1a1a2e", marginBottom: "20px" }}>Active Leads</h2>
-          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center" }}>
-            {leads.map((lead, index) => (
-              <LeadCard key={index} lead={lead} index={index} onDelete={() => handleDelete(index)} />
-            ))}
+      {!loading && !error && (
+        <>
+          <div style={{ textAlign: "center", marginBottom: "30px" }}>
+            <label style={{ display: "block", color: "#444", marginBottom: "10px", fontSize: "18px" }}>
+              Enter USD Amount
+            </label>
+            <input
+              type="number"
+              value={usdAmount}
+              onChange={(e) => setUsdAmount(e.target.value)}
+              style={{ padding: "15px", fontSize: "24px", width: "200px", textAlign: "center", border: "2px solid #e0a04f" }}
+            />
           </div>
-        </div>
+
+          <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap" }}>
+            <CurrencyCard title="US Dollars" amount={Number(usdAmount).toLocaleString()} symbol="$" />
+            <CurrencyCard title="Kenyan Shillings" amount={kesAmount} symbol="KES " />
+            <CurrencyCard title="British Pounds" amount={(usdAmount * (rate / 170)).toFixed(2)} symbol="£" />
+            <CurrencyCard title="Euros" amount={(usdAmount * (rate / 140)).toFixed(2)} symbol="€" />
+          </div>
+
+          <div style={{ textAlign: "center", marginTop: "40px", padding: "20px", backgroundColor: "#1a1a2e", color: "white", maxWidth: "500px", margin: "40px auto 0" }}>
+            <p style={{ color: "#888", marginBottom: "10px" }}>Monthly income of $4,000 USD =</p>
+            <h2 style={{ color: "#e0a04f", fontSize: "32px" }}>
+              KES {rate ? (4000 * rate).toLocaleString() : "..."} /month
+            </h2>
+            <p style={{ color: "#888", fontSize: "14px", marginTop: "10px" }}>Living like royalty in Kisumu 🇰🇪</p>
+          </div>
+
+          <div style={{ maxWidth: "500px", margin: "20px auto" }}>
+            <h3 style={{ color: "#1a1a2e", marginBottom: "15px", textAlign: "center" }}>Kisumu Monthly Budget</h3>
+            <div style={{ backgroundColor: "white", padding: "20px", borderLeft: "4px solid #e0a04f" }}>
+              <p>🏠 Rent: KES {rate ? (250 * rate).toLocaleString() : "..."}</p>
+              <p>🍽️ Food: KES {rate ? (150 * rate).toLocaleString() : "..."}</p>
+              <p>🌐 Internet: KES {rate ? (40 * rate).toLocaleString() : "..."}</p>
+              <p>🚗 Transport: KES {rate ? (60 * rate).toLocaleString() : "..."}</p>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
