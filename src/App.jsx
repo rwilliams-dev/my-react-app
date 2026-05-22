@@ -1,103 +1,125 @@
-import { useState, useEffect } from "react";
-
-function CurrencyCard({ title, amount, symbol }) {
-  return (
-    <div style={{
-      backgroundColor: "white",
-      padding: "30px",
-      margin: "10px",
-      minWidth: "200px",
-      borderTop: "4px solid #e0a04f",
-      textAlign: "center"
-    }}>
-      <p style={{ color: "#888", fontSize: "14px", marginBottom: "10px" }}>{title}</p>
-      <h2 style={{ color: "#1a1a2e", fontSize: "36px" }}>{symbol}{amount}</h2>
-    </div>
-  );
-}
+import { useState } from "react";
+import emailjs from "@emailjs/browser";
 
 function App() {
-  const [rate, setRate] = useState(null);
-  const [usdAmount, setUsdAmount] = useState(1000);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [service, setService] = useState("Business Website");
+  const [message, setMessage] = useState("");
+  const [status, setStatus] = useState("");
+  const [sending, setSending] = useState(false);
 
-  useEffect(() => {
-    async function fetchRate() {
-      try {
-        const response = await fetch(
-          "https://api.exchangerate-api.com/v4/latest/USD"
-        );
-        const data = await response.json();
-        setRate(data.rates.KES);
-        setLoading(false);
-      } catch (err) {
-        setError("Could not fetch exchange rate");
-        setLoading(false);
-      }
-    }
-    fetchRate();
-  }, []);
+  function handleSubmit(e) {
+    e.preventDefault();
+    setSending(true);
+    setStatus("");
 
-  const kesAmount = rate ? (usdAmount * rate).toLocaleString() : "...";
+    emailjs.send(
+      "service_5an9bcm",
+      "template_252kzzv",
+      {
+        from_name: name,
+        from_email: email,
+        service: service,
+        message: message,
+      },
+      "f9Dng_uDxGBzPQWX3"
+    ).then(() => {
+      setStatus("success");
+      setSending(false);
+      setName("");
+      setEmail("");
+      setMessage("");
+    }).catch(() => {
+      setStatus("error");
+      setSending(false);
+    });
+  }
 
   return (
-    <div style={{ backgroundColor: "#f5f5f5", minHeight: "100vh", padding: "60px 40px" }}>
-      <div style={{ textAlign: "center", marginBottom: "50px" }}>
-        <h1 style={{ color: "#1a1a2e", fontSize: "42px", fontFamily: "Georgia, serif" }}>
-          USD → KES
+    <div style={{ backgroundColor: "#0a0a0a", minHeight: "100vh", padding: "60px 40px" }}>
+      <div style={{ maxWidth: "600px", margin: "0 auto" }}>
+        <h1 style={{ color: "#e0a04f", fontFamily: "Georgia, serif", fontSize: "42px", textAlign: "center", marginBottom: "10px" }}>
+          RichProMedia
         </h1>
-        <p style={{ color: "#888", fontSize: "18px" }}>Live Exchange Rate</p>
-        {rate && (
-          <p style={{ color: "#e0a04f", fontSize: "16px", marginTop: "10px" }}>
-            1 USD = {rate.toFixed(2)} KES
-          </p>
-        )}
-      </div>
+        <p style={{ color: "#888", textAlign: "center", marginBottom: "50px", fontSize: "18px" }}>
+          Let's build something great together
+        </p>
 
-      {loading && <p style={{ textAlign: "center", color: "#888" }}>Fetching live rate...</p>}
-      {error && <p style={{ textAlign: "center", color: "red" }}>{error}</p>}
+        <div style={{ backgroundColor: "#1a1a1a", padding: "40px", borderTop: "4px solid #e0a04f" }}>
+          <h2 style={{ color: "#e2e8f0", marginBottom: "30px" }}>Get In Touch</h2>
 
-      {!loading && !error && (
-        <>
-          <div style={{ textAlign: "center", marginBottom: "30px" }}>
-            <label style={{ display: "block", color: "#444", marginBottom: "10px", fontSize: "18px" }}>
-              Enter USD Amount
-            </label>
-            <input
-              type="number"
-              value={usdAmount}
-              onChange={(e) => setUsdAmount(e.target.value)}
-              style={{ padding: "15px", fontSize: "24px", width: "200px", textAlign: "center", border: "2px solid #e0a04f" }}
-            />
-          </div>
-
-          <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap" }}>
-            <CurrencyCard title="US Dollars" amount={Number(usdAmount).toLocaleString()} symbol="$" />
-            <CurrencyCard title="Kenyan Shillings" amount={kesAmount} symbol="KES " />
-            <CurrencyCard title="British Pounds" amount={(usdAmount * (rate / 170)).toFixed(2)} symbol="£" />
-            <CurrencyCard title="Euros" amount={(usdAmount * (rate / 140)).toFixed(2)} symbol="€" />
-          </div>
-
-          <div style={{ textAlign: "center", marginTop: "40px", padding: "20px", backgroundColor: "#1a1a2e", color: "white", maxWidth: "500px", margin: "40px auto 0" }}>
-            <p style={{ color: "#888", marginBottom: "10px" }}>Monthly income of $4,000 USD =</p>
-            <h2 style={{ color: "#e0a04f", fontSize: "32px" }}>
-              KES {rate ? (4000 * rate).toLocaleString() : "..."} /month
-            </h2>
-            <p style={{ color: "#888", fontSize: "14px", marginTop: "10px" }}>Living like royalty in Kisumu 🇰🇪</p>
-          </div>
-
-          <div style={{ maxWidth: "500px", margin: "20px auto" }}>
-            <h3 style={{ color: "#1a1a2e", marginBottom: "15px", textAlign: "center" }}>Kisumu Monthly Budget</h3>
-            <div style={{ backgroundColor: "white", padding: "20px", borderLeft: "4px solid #e0a04f" }}>
-              <p>🏠 Rent: KES {rate ? (250 * rate).toLocaleString() : "..."}</p>
-              <p>🍽️ Food: KES {rate ? (150 * rate).toLocaleString() : "..."}</p>
-              <p>🌐 Internet: KES {rate ? (40 * rate).toLocaleString() : "..."}</p>
-              <p>🚗 Transport: KES {rate ? (60 * rate).toLocaleString() : "..."}</p>
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: "20px" }}>
+              <label style={{ display: "block", color: "#888", marginBottom: "8px" }}>Your Name</label>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="John Smith"
+                required
+                style={{ width: "100%", padding: "12px", backgroundColor: "#222", border: "1px solid #333", color: "white", fontSize: "16px" }}
+              />
             </div>
-          </div>
-        </>
-      )}
+
+            <div style={{ marginBottom: "20px" }}>
+              <label style={{ display: "block", color: "#888", marginBottom: "8px" }}>Email Address</label>
+              <input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="john@email.com"
+                type="email"
+                required
+                style={{ width: "100%", padding: "12px", backgroundColor: "#222", border: "1px solid #333", color: "white", fontSize: "16px" }}
+              />
+            </div>
+
+            <div style={{ marginBottom: "20px" }}>
+              <label style={{ display: "block", color: "#888", marginBottom: "8px" }}>Service Needed</label>
+              <select
+                value={service}
+                onChange={(e) => setService(e.target.value)}
+                style={{ width: "100%", padding: "12px", backgroundColor: "#222", border: "1px solid #333", color: "white", fontSize: "16px" }}
+              >
+                <option>Business Website</option>
+                <option>Landing Page</option>
+                <option>Portfolio Site</option>
+                <option>SEO Optimization</option>
+              </select>
+            </div>
+
+            <div style={{ marginBottom: "30px" }}>
+              <label style={{ display: "block", color: "#888", marginBottom: "8px" }}>Message</label>
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Tell me about your project..."
+                required
+                rows={5}
+                style={{ width: "100%", padding: "12px", backgroundColor: "#222", border: "1px solid #333", color: "white", fontSize: "16px", resize: "vertical" }}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={sending}
+              style={{ width: "100%", padding: "16px", backgroundColor: "#e0a04f", color: "#0a0a0a", border: "none", fontSize: "18px", fontWeight: "bold", cursor: sending ? "not-allowed" : "pointer" }}
+            >
+              {sending ? "Sending..." : "Send Message"}
+            </button>
+
+            {status === "success" && (
+              <p style={{ color: "#2d8a4e", textAlign: "center", marginTop: "20px", fontSize: "18px" }}>
+                ✅ Message sent! I'll get back to you within 24 hours.
+              </p>
+            )}
+            {status === "error" && (
+              <p style={{ color: "red", textAlign: "center", marginTop: "20px" }}>
+                Something went wrong. Please try again.
+              </p>
+            )}
+          </form>
+        </div>
+      </div>
     </div>
   );
 }
